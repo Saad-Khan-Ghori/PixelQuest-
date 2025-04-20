@@ -6,13 +6,14 @@
 
 class Player {
 public:
+    int coins;
     Player(Vector2 start);
 
     void  attach(Level* lvl) { level = lvl; }
     void  update(float dt);
     void  draw() const;
-
     void  reset(Vector2 start);
+    void  collectCoins();  // Added declaration
 
     Vector2 pos()   const { return position; }
     float   w()     const { return PW; }
@@ -31,7 +32,6 @@ private:
     bool    isDead = false;
     bool    reachedGate = false;
     int     points = 0;
-
     Level* level = nullptr;
 
     Rectangle bounds() const { return { position.x, position.y, PW, PH }; }
