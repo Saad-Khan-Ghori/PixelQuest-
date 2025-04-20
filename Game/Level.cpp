@@ -10,42 +10,40 @@ Level::Level()
         {
             float tx = x * TILE, ty = y * TILE;
 
-            // ---------- ground with pits ----------
-     // ---------- Ground with pits ----------
             if (y == ROWS - 1)
             {
-                bool pit = ((x / 10) & 1) && (x % 10 < 3); // Wider spacing
+                bool pit = ((x / 10) & 1) && (x % 10 < 3); 
                 map[y][x] = pit ? Tile(tx, ty, EMPTY, false)
                     : Tile(tx, ty, GROUND, true);
             }
 
-            // ---------- Sparse platforms ----------
-            if (y == ROWS - 4) // Higher platform row
+           
+            if (y == ROWS - 4 && x < COLS - 20)
             {
-                // Platform every 20 columns with alternating offsets
                 if ((x % 20 >= 5 && x % 20 <= 8) ||
                     (x % 20 >= 15 && x % 20 <= 18))
                 {
                     map[y][x] = Tile(tx, ty, PLATFORM, true);
-                    if (x % 20 == 6 || x % 20 == 16) // Coins above center
+                 
+                    if (x < COLS - 25 && (x % 20 == 6 || x % 20 == 16))
                         map[y - 1][x] = Tile(tx, ty - TILE, COIN, false);
                 }
             }
 
-            // ---------- Final Gate ----------
+         
             if (x == COLS - 6 && y >= ROWS - 5)
             {
-                // Tall 2x3 gate structure
                 map[y][x] = Tile(tx, ty, GATE, true);
                 map[y][x + 1] = Tile(tx + TILE, ty, GATE, true);
                 map[y][x + 2] = Tile(tx + TILE * 2, ty, GATE, true);
             }
 
-            // ---------- Lava pool ----------
-            if (y == ROWS - 1 && x > COLS - 15)
+     
+            if (y == ROWS - 1 && x > COLS - 11)
                 map[y][x] = Tile(tx, ty, LAVA, true);
         }
 }
+
 void Level::draw() const
 {
     for (const auto& row : map)
