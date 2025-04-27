@@ -3,14 +3,14 @@
 
 #include "Tile.h"
 #include <vector>
-
+using namespace std;
 class Level {
 public:
     static constexpr int TILE = 32;
     static constexpr int ROWS = 12;
     static constexpr int COLS = 100;   // 3200?px wide
 
-    std::vector<std::vector<Tile>> map;
+    vector<vector<Tile>> map;
 
     Level();
     void draw() const;
