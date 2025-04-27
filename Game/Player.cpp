@@ -1,7 +1,8 @@
 #include "Player.h"
 
 Player::Player(Vector2 start) { reset(start); }
-
+Sound jumpSound = LoadSound("jump.mp3");
+Sound coinSound = LoadSound("coin.mp3");
 void Player::reset(Vector2 start)
 {
     position = start;
@@ -19,8 +20,8 @@ void Player::update(float dt)
     // Input
     vel.x = (IsKeyDown(KEY_RIGHT) - IsKeyDown(KEY_LEFT)) * SPEED;
 
-    if (IsKeyPressed(KEY_SPACE) && canJump)
-    {
+    if (IsKeyPressed(KEY_SPACE) && canJump){
+        PlaySound(jumpSound);
         vel.y = -JUMP;
         canJump = false;
     }
@@ -49,12 +50,14 @@ void Player::collectCoins()
                 if (CheckCollisionRecs(coinRect, this->bounds()))
                 {
                     t.taken = true;
-                    this->points += 100;
+                    points += 100;
+                    // Add coin collection sound here
                 }
             }
         }
 }
 
+// Modify the tile checking in moveY function
 void Player::moveY(float dt)
 {
     position.y += vel.y * dt;
@@ -63,8 +66,8 @@ void Player::moveY(float dt)
     for (auto& row : level->map)
         for (auto& t : row)
         {
-          
-            if (!t.solid && t.type != COIN && t.type != LAVA && t.type != GATE) continue;
+            // Skip non-solid tiles except for LAVA and GATE
+            if (!t.solid && t.type != LAVA && t.type != GATE) continue;
 
             Rectangle tr = { t.x, t.y, (float)Level::TILE,
                 (t.type == GATE) ? Level::TILE * 2 : Level::TILE };
@@ -76,7 +79,7 @@ void Player::moveY(float dt)
 
             // Collide with solid
             if (vel.y > 0) {
-                position.y = t.y - PH;
+                position.y = t.y - PH - 1;
                 canJump = true;
             }
             else {
@@ -114,5 +117,5 @@ void Player::moveX(float dt)
 void Player::draw() const
 {
     DrawRectangle(position.x, position.y, PW, PH, BLUE);
-    DrawText(TextFormat("Score: %d", points), 10, 10, 20, BLACK);
+   
 }
