@@ -1,36 +1,50 @@
 #include "Level.h"
 #include "raylib.h"
 
-Level::Level()
-{
-    map.resize(ROWS, std::vector<Tile>(COLS));
-
+Level::Level(){
+    map.resize(ROWS, vector<Tile>(COLS));
+    const int SAFE_ZONE = 15;
     for (int y = 0; y < ROWS; ++y)
         for (int x = 0; x < COLS; ++x)
         {
             float tx = x * TILE, ty = y * TILE;
 
-            if (y == ROWS - 1)
-            {
-                bool pit = ((x / 10) & 1) && (x % 10 < 3); 
-                map[y][x] = pit ? Tile(tx, ty, EMPTY, false)
-                    : Tile(tx, ty, GROUND, true);
+            if (y == ROWS - 1) {
+                // First 10 tiles are always safe ground
+                if (x < 10) {
+                    map[y][x] = Tile(tx, ty, GROUND, true);
+                }
+                else {
+                    bool pit = ((x / 10) & 1) && (x % 10 < 3);
+                    if (pit) {
+                        int pitWidth = 2;
+                        // Ensure we don't create pits near start
+                        if (x + pitWidth < COLS) {
+                            for (int i = 0; i < pitWidth; i++) {
+                                map[y][x + i] = Tile(tx + i * TILE, ty, EMPTY, false); // Fixed position calculation
+                            }
+                            x += pitWidth - 1;
+                        }
+                    }
+                    else {
+                        map[y][x] = Tile(tx, ty, GROUND, true);
+                    }
+                }
             }
 
-           
-            if (y == ROWS - 4 && x < COLS - 20)
+
+            if (y == ROWS - 4 && x < COLS - 20&& GetRandomValue(0, 100) < 60)
             {
                 if ((x % 20 >= 5 && x % 20 <= 8) ||
                     (x % 20 >= 15 && x % 20 <= 18))
                 {
                     map[y][x] = Tile(tx, ty, PLATFORM, true);
-                 
+
                     if (x < COLS - 25 && (x % 20 == 6 || x % 20 == 16))
                         map[y - 1][x] = Tile(tx, ty - TILE, COIN, false);
                 }
             }
 
-         
             if (x == COLS - 6 && y >= ROWS - 5)
             {
                 map[y][x] = Tile(tx, ty, GATE, true);
@@ -38,7 +52,7 @@ Level::Level()
                 map[y][x + 2] = Tile(tx + TILE * 2, ty, GATE, true);
             }
 
-     
+
             if (y == ROWS - 1 && x > COLS - 11)
                 map[y][x] = Tile(tx, ty, LAVA, true);
         }
