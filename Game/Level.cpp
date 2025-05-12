@@ -1,9 +1,21 @@
 #include "Level.h"
 #include "raylib.h"
+void Level::reset() {
+    
+    UnloadTexture(texPlatform);
+    UnloadTexture(texLava);
+    
 
+    
+    texPlatform = LoadTexture("wood.png");
+    texLava = LoadTexture("lava.png");
+   
+}
 Level::Level(){
+    texPlatform = LoadTexture("wood.png");
+    texLava = LoadTexture("lava.png");
     map.resize(ROWS, vector<Tile>(COLS));
-    const int SAFE_ZONE = 15;
+         const int SAFE_ZONE = 15;
     for (int y = 0; y < ROWS; ++y)
         for (int x = 0; x < COLS; ++x)
         {
@@ -65,15 +77,16 @@ void Level::draw() const
         {
             switch (t.type)
             {
-            case GROUND:   DrawRectangle(t.x, t.y, TILE, TILE, DARKGRAY); break;
-            case PLATFORM: DrawRectangle(t.x, t.y, TILE, TILE, LIGHTGRAY); break;
-            case LAVA:     DrawRectangle(t.x, t.y, TILE, TILE, RED);      break;
+            case GROUND:    DrawRectangle(t.x, t.y, TILE, TILE, Color{ 210, 175, 120, 255 }); break;
+            case PLATFORM: DrawTexture(texPlatform, t.x, t.y, WHITE); break;
+            case LAVA:     DrawTexture(texLava, t.x, t.y, WHITE);      break;
             case COIN:
                 if (!t.taken)
                     DrawCircle(t.x + TILE / 2, t.y + TILE / 2, 8, YELLOW);
                 break;
             case GATE:
-                DrawRectangle(t.x, t.y, TILE, TILE * 2, GREEN); break;
+                DrawRectangle(t.x, t.y, TILE, TILE, Color{ 180, 255, 180, 255 });
+                 break;
             default: break;
             }
         }
