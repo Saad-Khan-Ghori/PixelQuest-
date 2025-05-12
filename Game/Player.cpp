@@ -1,20 +1,32 @@
 #include "Player.h"
 
-Player::Player(Vector2 start) { reset(start); }
-Sound jumpSound = LoadSound("jump.mp3");
-Sound coinSound = LoadSound("coin.mp3");
+Player::Player(Vector2 start) { 
+    texIdle = LoadTexture("Idle (32x32).png");
+    texRun = LoadTexture("Run (32x32).png");
+    texJump = LoadTexture("Jump (32x32).png");
+    framesIdle = texIdle.width / PW; 
+    framesRun = texRun.width / PW;
+    reset(start);
+    
+}
+
 void Player::reset(Vector2 start)
 {
+    std::cout << "Spawning player at (" << position.x << ", " << position.y << ")\n";
     position = start;
     vel = { 0,0 };
     canJump = true;
     isDead = false;
     reachedGate = false;
     points = 0;
+    animState = AS_IDLE;
+    currentFrame = 0;
+    frameTimer = 0.f;
 }
 
 void Player::update(float dt)
 {
+    Sound fallSound = LoadSound("fall.wav");
     if (!level) return;
 
     // Input
@@ -30,17 +42,41 @@ void Player::update(float dt)
     vel.y += GRAV * dt;
     if (vel.y > 600) vel.y = 600;
 
+
     moveY(dt);
     moveX(dt);
+    if (vel.y < 0)                         animState = AS_JUMP;
+    else if (vel.y > 0 && !canJump)             animState = AS_FALL;
+    else if (std::abs(vel.x) > 0.1f)            animState = AS_RUN;
+    else                                        animState = AS_IDLE;
+
+    // advance frame only for Idle & Run
+    if (animState == AS_IDLE || animState == AS_RUN) {
+        frameTimer += dt;
+        if (frameTimer >= frameDuration) {
+            frameTimer -= frameDuration;
+            int maxF = (animState == AS_IDLE ? framesIdle : framesRun);
+            currentFrame = (currentFrame + 1) % maxF;
+        }
+    }
+    else {
+        // single?frame for jump & fall
+        currentFrame = 0;
+    }
     collectCoins();  // Now properly declared
+    PlaySound(coinSound);
 
     // Fell into pit?
-    if (position.y > Level::ROWS * Level::TILE) isDead = true;
+    if (position.y > Level::ROWS * Level::TILE) {
+        PlaySound(fallSound);
+        isDead = true;
+    }
 }
 
 // Implement collectCoins properly
 void Player::collectCoins()
 {
+    Sound coinSound = LoadSound("coin.wav");
     for (auto& row : level->map)
         for (auto& t : row)
         {
@@ -49,9 +85,10 @@ void Player::collectCoins()
                 Rectangle coinRect = { t.x, t.y, (float)Level::TILE, (float)Level::TILE };
                 if (CheckCollisionRecs(coinRect, this->bounds()))
                 {
+                    PlaySound(coinSound);
                     t.taken = true;
                     points += 100;
-                    // Add coin collection sound here
+                    PlaySound(coinSound);
                 }
             }
         }
@@ -116,6 +153,21 @@ void Player::moveX(float dt)
 
 void Player::draw() const
 {
-    DrawRectangle(position.x, position.y, PW, PH, BLUE);
+    const Texture2D& tex =
+        (animState == AS_RUN ? texRun :
+            animState == AS_IDLE ? texIdle :
+            /*JUMP or FALL*/       texJump);
+
+    // source rectangle from frame index
+    Rectangle src = {
+        currentFrame * PW, 0.f,
+        (float)PW, (float)PH
+    };
+    Rectangle dst = {
+     position.x, position.y,
+     float(PW) * SCALE,
+     float(PH) * SCALE
+    };
+    DrawTexturePro(tex, src, dst, { 0,0 }, 0.f, WHITE);
    
 }
